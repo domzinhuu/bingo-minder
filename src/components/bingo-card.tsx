@@ -5,7 +5,7 @@ interface Props {
 }
 export function BingoCard({ cardNumbers }: Props) {
   return (
-    <div className="rounded-lg border space-y-2">
+    <div className="rounded-lg space-y-2">
       <BingoHeaderRow />
       {["B", "I", "N", "G", "O"].map((letter) => (
         <BingoCardRow key={letter} rowValues={cardNumbers[letter]} />
