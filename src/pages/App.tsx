@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { PageAside, PageContent, PageRoot } from "./components/page";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PageAside, PageContent, PageRoot } from "../components/page";
 import {
   Form,
   FormControl,
@@ -7,35 +7,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./components/ui/form";
+} from "../components/ui/form";
 import { useForm } from "react-hook-form";
-import { Input } from "./components/ui/input";
-import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group";
+import { Input } from "../components/ui/input";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./components/ui/select";
-import { Button } from "./components/ui/button";
+} from "../components/ui/select";
+import { Button } from "../components/ui/button";
 import { CirclePowerIcon } from "lucide-react";
-
-const gameSettingsSchema = z.object({
-  roomName: z.string({ required_error: "the room name is required" }),
-  playerNumber: z.number({ coerce: true }).optional(),
-  username: z
-    .string({ required_error: "the username is required" })
-    .min(1, { message: "the username should have more than one character" }),
-  roomType: z.enum(["admin", "user"], {
-    required_error: "select the type of the room",
-  }),
-});
-
-type GameSettings = z.infer<typeof gameSettingsSchema>;
+import { useGame } from "../hooks/game";
+import { GameSettings } from "../types/game";
+import { gameSettingsSchema } from "../utils/schemas";
+import { useNavigate } from "react-router-dom";
 
 export function Home() {
+  const navigate = useNavigate();
+
   const form = useForm<GameSettings>({
+    resolver: zodResolver(gameSettingsSchema),
     defaultValues: {
       username: "",
       roomName: "",
@@ -43,6 +37,20 @@ export function Home() {
       playerNumber: 2,
     },
   });
+  const { roomList, newGame, addPlayerInRoom } = useGame();
+
+  const handleNewMatch = (setting: GameSettings) => {
+    if (setting.roomType === "admin") {
+      newGame(setting);
+      navigate("/host");
+    } else {
+      addPlayerInRoom(setting.username, setting.roomName);
+      navigate("/waiting");
+    }
+  };
+
+
+  
 
   const roomType = form.watch("roomType");
   return (
@@ -60,7 +68,10 @@ export function Home() {
       <PageContent>
         <div className="w-[500px] ">
           <Form {...form}>
-            <form className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={form.handleSubmit(handleNewMatch)}
+            >
               <FormField
                 control={form.control}
                 name="username"
@@ -101,7 +112,7 @@ export function Home() {
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="user" />
+                            <RadioGroupItem value="player" />
                           </FormControl>
                           <FormLabel className="font-light text-white cursor-pointer">
                             Enter as player
@@ -154,7 +165,7 @@ export function Home() {
                 </div>
               )}
 
-              {roomType === "user" && (
+              {roomType === "player" && (
                 <FormField
                   control={form.control}
                   name="roomName"
@@ -169,19 +180,21 @@ export function Home() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a verified email to display" />
+                            <SelectValue placeholder="Select a room to enter..." />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="m@example.com">
-                            m@example.com
-                          </SelectItem>
-                          <SelectItem value="m@google.com">
-                            m@google.com
-                          </SelectItem>
-                          <SelectItem value="m@support.com">
-                            m@support.com
-                          </SelectItem>
+                          {!roomList.length ? (
+                            <SelectItem value="label" disabled={true}>
+                              No rooms available
+                            </SelectItem>
+                          ) : (
+                            roomList.map((room) => (
+                              <SelectItem key={room} value={room}>
+                                {room}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -193,6 +206,7 @@ export function Home() {
               <div className="flex w-full justify-end">
                 <Button
                   size="lg"
+                  type="submit"
                   variant="primary"
                   className="flex items-center gap-4 font-number"
                 >

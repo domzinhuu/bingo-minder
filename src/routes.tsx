@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
-import { Home } from "./App";
-import { Player } from "./player";
+import { Home } from "./pages/App";
+import { Players } from "./pages/Players";
+import { Host } from "./pages/Host";
+import { Waiting } from "./pages/Waiting";
 
 export const routes = createBrowserRouter([
   {
@@ -9,6 +11,13 @@ export const routes = createBrowserRouter([
   },
   {
     path: "/player",
-    element: <Player />,
+    element: <Players />,
+  },
+  {
+    path: "/host",
+    element: <Host />,
+  }, {
+    path: "/waiting",
+    element: <Waiting />,
   },
 ]);

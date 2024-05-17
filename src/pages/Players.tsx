@@ -1,14 +1,25 @@
-import { BingoCard } from "./components/bingo-card";
-import { PageAside, PageContent, PageRoot } from "./components/page";
-import { Table, TableBody, TableCell, TableRow } from "./components/ui/table";
-import { generateBingoCard } from "./utils/functions";
+import { useGame } from "@/hooks/game";
+import { BingoCard } from "../components/bingo-card";
+import { PageAside, PageContent, PageRoot } from "../components/page";
+import { Table, TableBody, TableCell, TableRow } from "../components/ui/table";
+import { generateBingoCard } from "../utils/functions";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-export function Player() {
+export function Players() {
+  const { currentDrawnNumbers, status, currentPlayer } = useGame();
   const cardNumbers = generateBingoCard();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (status === "disconnected") {
+      navigate("/");
+    }
+  }, [status]);
   return (
     <PageRoot>
       <PageAside>
-        <h1 className="font-title">Bingo Minder</h1>
+        <h1 className="font-title hidden lg:block">Bingo Minder</h1>
         <Table>
           <TableBody>
             <TableRow>
@@ -20,7 +31,7 @@ export function Player() {
             <TableRow>
               <TableCell className="flex items-center justify-between">
                 <span className="font-bold">Player:</span>{" "}
-                <span>Maique Rosa</span>
+                <span>{currentPlayer.name}</span>
               </TableCell>
             </TableRow>
             <TableRow>
@@ -31,12 +42,12 @@ export function Player() {
           </TableBody>
         </Table>
         <div className="flex items-center gap-2 flex-wrap">
-          {Array.from({ length: 10 }).map((_, i) => (
+          {currentDrawnNumbers.map((value) => (
             <div
-              key={i}
+              key={value}
               className="size-12 font-number rounded-full border-2 flex justify-center items-center border-amber-500 shadow-lg"
             >
-              {i + 1}
+              {value}
             </div>
           ))}
         </div>
