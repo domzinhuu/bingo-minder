@@ -1,0 +1,3 @@
+const context = {};
+
+export { context };

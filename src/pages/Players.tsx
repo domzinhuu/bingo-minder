@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableRow } from "../components/ui/table";
 import { generateBingoCard } from "../utils/functions";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { LogOutIcon } from "lucide-react";
 
 export function Players() {
   const { currentDrawnNumbers, status, currentPlayer } = useGame();
@@ -16,6 +18,7 @@ export function Players() {
       navigate("/");
     }
   }, [status]);
+
   return (
     <PageRoot>
       <PageAside>
@@ -51,6 +54,13 @@ export function Players() {
             </div>
           ))}
         </div>
+
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => navigate("/")}
+        >
+          <LogOutIcon /> Logout
+        </Button>
       </PageAside>
       <PageContent>
         <BingoCard cardNumbers={cardNumbers} />

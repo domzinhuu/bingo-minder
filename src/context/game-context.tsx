@@ -1,4 +1,6 @@
+import { getSession, setSession } from "@/lib/utils";
 import { GameEngine, GameRoom, GameSettings, Player } from "@/types/game";
+import { GameEvents } from "@/utils/enums";
 import { socket } from "@/ws/socket";
 import { PropsWithChildren, createContext, useEffect, useState } from "react";
 
@@ -37,38 +39,47 @@ export function GameProvider({ children }: PropsWithChildren) {
   const refreshCurrentPlayer = (player: Player) => {
     setPlayer(player);
   };
+
   const addPlayerInRoom = (playerName: string, roomName: string) => {
-    socket.emit("add_player_to_room", { playerName, roomName });
+    socket.emit(GameEvents.addNewPlayer, { playerName, roomName });
   };
 
   const createANewGame = (setting: GameSettings) => {
-    socket.emit("create_game", setting);
+    socket.emit(GameEvents.startNewRoom, setting);
   };
 
   useEffect(() => {
-    socket.once("new_player", (data: string[]) => {
-      setRoomList(data);
-      setStatus("connected");
-      console.log("event once - new_player: ", data);
+    socket.on(GameEvents.connect, () => {
+      const currentPlayer: Player = getSession();
+
+      if (currentPlayer && currentPlayer.status === "accepted") {
+        currentPlayer.socketId = socket.id;
+
+        socket.emit(GameEvents.refreshSession, currentPlayer);
+      }
     });
 
-    socket.on("game_updated", (data: GameEngine) => {
-      console.log("event - game_updated:", socket.id, data);
+    socket.on(GameEvents.availableRooms, (data: string[]) => {
+      setRoomList(data);
+      setStatus("connected");
+      const player = getSession();
+
+      if (player) {
+        setPlayer(player);
+      }
+    });
+
+    socket.on(GameEvents.gameUpdated, (data: GameEngine) => {
       setGame(() => ({ ...data }));
     });
 
-    socket.on("set_current_player", (player: Player) => {
-      console.log("event - set_current_player", socket.id, player);
+    socket.on(GameEvents.socketPlayer, (player: Player) => {
       setPlayer(player);
+      setSession(player);
     });
 
-    socket.on("room_list_updated", (data: string[]) => {
-      console.log("event - room_list_updated", socket.id, data);
+    socket.on(GameEvents.updateAvailableRooms, (data: string[]) => {
       setRoomList(data);
-    });
-
-    socket.on("disconnected", () => {
-      setStatus("disconnected");
     });
   }, []);
 

@@ -4,8 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useGame } from "@/hooks/game";
+import { GameEvents } from "@/utils/enums";
 import { socket } from "@/ws/socket";
-import { BanIcon, CheckIcon, User, UserRoundCheck } from "lucide-react";
+import {
+  BanIcon,
+  CheckIcon,
+  LogOutIcon,
+  User,
+  UserRoundCheck,
+} from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +21,7 @@ export function Host() {
   const navigate = useNavigate();
 
   const handlePlayerApproval = (playerId: string, socketId: string) => {
-    socket.emit("approve_player", {
+    socket.emit(GameEvents.approvePlayer, {
       playerId,
       socketId,
       roomName: currentPlayer.currentRoom,
@@ -22,7 +29,7 @@ export function Host() {
   };
 
   const handlePlayerReject = (playerId: string, socketId: string) => {
-    socket.emit("reject_player", {
+    socket.emit(GameEvents.rejectPlayer, {
       playerId,
       socketId,
       roomName: currentPlayer.currentRoom,
@@ -36,9 +43,7 @@ export function Host() {
     }
   }, [status]);
 
-  useEffect(() => {
-    
-  }, [game]);
+  useEffect(() => {}, [game]);
 
   console.log(game.players);
   return (
@@ -101,6 +106,12 @@ export function Host() {
             ))}
           </ul>
         </div>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => navigate("/")}
+        >
+          <LogOutIcon /> Logout
+        </Button>
       </PageAside>
       <PageContent>
         <BingoNumbers />

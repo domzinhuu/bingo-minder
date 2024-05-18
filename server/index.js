@@ -1,21 +1,32 @@
-import { createServer } from "node:http";
-import { Server } from "socket.io";
-import { GameContext, Player } from "./types.js";
+import { Player } from "./types.js";
+import {
+  addNewPlayer,
+  approveNewPlayerInRoom,
+  drawNumber,
+  getAvailableRooms,
+  refreshPlayer,
+  rejectPlayerInRoom,
+  setSocketPlayer,
+  startNewRoom,
+  updateAvailableRooms,
+  updateRoomGame,
+} from "./functions.js";
+import { httpServer, io } from "./websocket.js";
+import { gameEvents } from "./constants.js";
 
-const httpServer = createServer();
-const io = new Server(httpServer, {
-  cors: "*",
-});
-
-let roomList = {};
 io.on("connection", (socket) => {
-  console.log("connected: ", socket.id);
-  //Sending
-
-  socket.emit("new_player", Object.keys(roomList));
+  // Sending room list to new socket connected
+  getAvailableRooms(socket);
 
   //Listening
-  socket.on("create_game", (setting) => {
+  socket.on(gameEvents.refreshSession, (player) => {
+    socket.join(player.currentRoom);
+    refreshPlayer(player);
+
+    updateRoomGame(player.currentRoom);
+  });
+
+  socket.on(gameEvents.startNewRoom, (setting) => {
     const player = new Player({
       id: crypto.randomUUID(),
       socketId: socket.id,
@@ -27,106 +38,46 @@ io.on("connection", (socket) => {
 
     const room = {
       name: setting.roomName,
-      capacity: setting.playerNumber || 5,
+      capacity: setting.playerNumber,
     };
-    socket.join(player.currentRoom);
-    const gameContext = new GameContext();
-    gameContext.players = [...gameContext.players, player];
-    gameContext.room = room;
-    roomList[player.currentRoom] = gameContext;
 
-    socket.currentRoom = room.name;
+    startNewRoom(socket, player, room);
+    setSocketPlayer(socket, player);
 
-    socket.emit("set_current_player", player);
-    io.to(player.currentRoom).emit("game_updated", gameContext);
-    io.emit("room_list_updated", Object.keys(roomList));
+    updateRoomGame(room.name);
+    updateAvailableRooms();
   });
 
-  socket.on("add_player_to_room", ({ playerName, roomName }) => {
-    const player = new Player();
-    player.currentRoom = roomName;
-    player.name = playerName;
-    player.id = crypto.randomUUID();
-    player.socketId = socket.id;
-    player.role = "player";
-    player.status = "waiting"
-
-    const gameContext = new GameContext(roomList[roomName]);
-
-    gameContext.players = [...gameContext.players, player];
-
-    roomList[roomName] = gameContext;
-    io.to(roomName).emit("game_updated", gameContext);
-  });
-
-  socket.on("draw_number", ({ value, roomName }) => {
-    const gameContext = new GameContext(roomList[roomName]);
-
-    let drawnNumbers = gameContext.drawnNumbers || [];
-
-    if (drawnNumbers.includes(value)) {
-      const updated = drawnNumbers.filter((n) => n !== value);
-      gameContext.drawnNumbers = updated;
-    } else {
-      drawnNumbers.push(value);
-      gameContext.drawnNumbers = drawnNumbers;
-    }
-    roomList[roomName] = gameContext;
-
-    io.to(roomName).emit("game_updated", gameContext);
-  });
-
-  socket.on("approve_player", ({ roomName, playerId, socketId }) => {
-    io.to(socketId).socketsJoin(roomName);
-    const gameContext = new GameContext(roomList[roomName]);
-    let currentPlayer = {};
-
-    gameContext.players.map((p) => {
-      if (p.id === playerId) {
-        p.status = "accepted";
-        currentPlayer = p;
-      }
-      return p;
+  socket.on(gameEvents.addNewPlayer, ({ playerName, roomName }) => {
+    const player = new Player({
+      id: crypto.randomUUID(),
+      socketId: socket.id,
+      name: playerName,
+      role: "player",
+      status: "waiting",
+      currentRoom: roomName,
     });
 
-    roomList[roomName] = gameContext
-    io.to(roomName).emit("game_updated", gameContext);
-    io.sockets.sockets.get(socketId).emit("set_current_player", currentPlayer);
+    //TODO: adicionar validaçao aqui para ver se o player é valido, se ja existem alguem com mesmo nome, etc...
+    addNewPlayer(socket, player);
+    updateRoomGame(roomName);
   });
 
-  socket.on("reject_player", ({ roomName, playerId, socketId }) => {
-    io.to(socketId).socketsLeave(roomName);
-    const gameContext = new GameContext(roomList[roomName]);
-
-    gameContext.players = gameContext.players.filter((p) => p.id !== playerId);
-
-
-    roomList[roomName] = gameContext
-    io.to(roomName).emit("game_updated", gameContext);
-    io.sockets.sockets
-      .get(socketId)
-      .emit("set_current_player", { status: "rejected" });
+  socket.on(gameEvents.drawNumber, ({ value, roomName }) => {
+    drawNumber(roomName, value);
+    updateRoomGame(roomName);
   });
 
-  socket.on("disconnect", () => {
-    console.log("disconected", socket.id);
-    const context = roomList[socket.currentRoom];
-    const gameContext = new GameContext(context);
+  socket.on(gameEvents.approvePlayer, ({ roomName, playerId, socketId }) => {
+    const player = approveNewPlayerInRoom(socketId, roomName, playerId);
 
-    const player = new Player(
-      gameContext.players.find((p) => p.id === socket.id)
-    );
+    io.to(socketId).emit(gameEvents.socketPlayer, player);
+    updateRoomGame(roomName);
+  });
 
-    gameContext.players = gameContext.players.filter((p) => p.id !== socket.id);
-
-    if (player && player.role === "admin") {
-      io.to(player.currentRoom).disconnectSockets();
-      delete roomList[socket.currentRoom];
-      io.emit("room_list_updated", Object.keys(roomList));
-      return;
-    }
-
-    io.to(player.currentRoom).emit("game_updated", gameContext);
+  socket.on(gameEvents.rejectPlayer, ({ roomName, playerId, socketId }) => {
+    rejectPlayerInRoom(socketId, roomName, playerId);
+    updateRoomGame(roomName);
   });
 });
 

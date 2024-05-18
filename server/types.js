@@ -19,6 +19,11 @@ export class Player {
 export class GameRoom {
   name = "";
   capacity = "";
+
+  constructor(data) {
+    this.name = data && data.name || "";
+    this.capacity = data && data.capacity || "";
+  }
 }
 
 export class Bingo {
@@ -41,5 +46,18 @@ export class GameContext {
     this.room = (data && data.room) || new GameRoom();
     this.drawnNumbers = (data && data.drawnNumbers) || [];
     this.bingoCards = (data && data.bingoCards) || [];
+  }
+}
+
+export class Settings {
+  roomName;
+  playerNumber;
+  username;
+  roomType;
+
+  constructor(data) {
+    this.roomName = data.roomName;
+    this.playerNumber = data.playerNumber;
+    (this.username = data.username), (this.roomType = data.roomType);
   }
 }

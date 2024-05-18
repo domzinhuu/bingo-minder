@@ -10,12 +10,13 @@ export function Waiting() {
   const { currentPlayer, refreshCurrentPlayer } = useGame();
   const navigate = useNavigate();
   useEffect(() => {
+    console.log(currentPlayer);
     if (currentPlayer.status === "accepted") {
       navigate("/player");
     }
 
     if (currentPlayer.status === "rejected") {
-        refreshCurrentPlayer({} as Player)
+      refreshCurrentPlayer({} as Player);
       navigate("/");
     }
   }, [currentPlayer]);

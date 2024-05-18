@@ -2,6 +2,7 @@ import { socket } from "@/ws/socket";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { useGame } from "@/hooks/game";
+import { GameEvents } from "@/utils/enums";
 
 export function BingoNumbers() {
   const {
@@ -10,7 +11,7 @@ export function BingoNumbers() {
   } = useGame();
 
   const handleNumberClicked = (value: number) => {
-    socket.emit("draw_number", { value, roomName: currentPlayer.currentRoom });
+    socket.emit(GameEvents.drawNumber, { value, roomName: currentPlayer.currentRoom });
   };
 
   return (
