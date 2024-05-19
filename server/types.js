@@ -1,6 +1,7 @@
 export class Player {
   id = "";
   socketId = "";
+  cardBingoId = "";
   name = "";
   role = "";
   status = "";
@@ -9,6 +10,7 @@ export class Player {
   constructor(data) {
     this.id = (data && data.id) || "";
     this.socketId = (data && data.socketId) || "";
+    this.cardBingoId = (data && data.cardBingoId) || "";
     this.name = (data && data.name) || "";
     this.role = (data && data.role) || "";
     this.currentRoom = (data && data.currentRoom) || "";
@@ -21,8 +23,8 @@ export class GameRoom {
   capacity = "";
 
   constructor(data) {
-    this.name = data && data.name || "";
-    this.capacity = data && data.capacity || "";
+    this.name = (data && data.name) || "";
+    this.capacity = (data && data.capacity) || "";
   }
 }
 
@@ -30,6 +32,12 @@ export class Bingo {
   id = "";
   owner = "";
   cardNumbers = {};
+
+  constructor(owner, cardNumbers, id) {
+    this.id = id || crypto.randomUUID();
+    this.owner = owner;
+    this.cardNumbers = cardNumbers;
+  }
 }
 
 export class GameContext {

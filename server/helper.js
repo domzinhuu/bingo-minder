@@ -1,4 +1,4 @@
-function generateRandomNumber(min: number, max: number): number[] {
+function generateRandomNumber(min, max) {
   const numbers = [];
   while (numbers.length < 5) {
     const r = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -7,9 +7,9 @@ function generateRandomNumber(min: number, max: number): number[] {
   return numbers;
 }
 
-export function generateBingoCard(): Record<string, number[]> {
-  const card: Record<string, number[]> = {};
-  const ranges: Record<string, { min: number; max: number }> = {
+export function generateBingoCard() {
+  const card = {};
+  const ranges = {
     B: { min: 1, max: 15 },
     I: { min: 16, max: 30 },
     N: { min: 31, max: 45 },

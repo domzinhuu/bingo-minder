@@ -14,3 +14,7 @@ export function getSession() {
   const player = sessionStorage.getItem("player");
   return player ? JSON.parse(player) : null;
 }
+
+export function clearSession() {
+  sessionStorage.removeItem("player");
+}

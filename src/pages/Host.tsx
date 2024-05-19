@@ -17,7 +17,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function Host() {
-  const { status, game, currentPlayer, getRoomCapacity } = useGame();
+  const { status, game, currentPlayer } = useGame();
   const navigate = useNavigate();
 
   const handlePlayerApproval = (playerId: string, socketId: string) => {
@@ -43,9 +43,6 @@ export function Host() {
     }
   }, [status]);
 
-  useEffect(() => {}, [game]);
-
-  console.log(game.players);
   return (
     <PageRoot>
       <PageAside>
@@ -59,7 +56,7 @@ export function Host() {
             <TableRow>
               <TableCell className="font-bold">Capacity:</TableCell>
               <TableCell>
-                <span>{`${game.players.length}/${getRoomCapacity()}`}</span>
+                <span>{`${game.players?.length}/${game.room?.capacity}`}</span>
               </TableCell>
             </TableRow>
           </TableBody>

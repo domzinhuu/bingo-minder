@@ -2,15 +2,15 @@ import { useGame } from "@/hooks/game";
 import { BingoCard } from "../components/bingo-card";
 import { PageAside, PageContent, PageRoot } from "../components/page";
 import { Table, TableBody, TableCell, TableRow } from "../components/ui/table";
-import { generateBingoCard } from "../utils/functions";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOutIcon } from "lucide-react";
 
 export function Players() {
-  const { currentDrawnNumbers, status, currentPlayer } = useGame();
-  const cardNumbers = generateBingoCard();
+  const { currentDrawnNumbers, status, currentPlayer, getBingoCard } =
+    useGame();
+  const bingo = getBingoCard(currentPlayer.cardBingoId!);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function Players() {
           </TableBody>
         </Table>
         <div className="flex items-center gap-2 flex-wrap">
-          {currentDrawnNumbers.map((value) => (
+          {currentDrawnNumbers?.map((value) => (
             <div
               key={value}
               className="size-12 font-number rounded-full border-2 flex justify-center items-center border-amber-500 shadow-lg"
@@ -63,7 +63,7 @@ export function Players() {
         </Button>
       </PageAside>
       <PageContent>
-        <BingoCard cardNumbers={cardNumbers} />
+        {bingo.cardNumbers && <BingoCard cardNumbers={bingo.cardNumbers} />}
       </PageContent>
     </PageRoot>
   );

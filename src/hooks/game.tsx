@@ -1,12 +1,14 @@
 import { GameContext } from "@/context/game-context";
+import { Bingo } from "@/types/game";
 import { useContext } from "react";
 export const useGame = () => {
   const context = useContext(GameContext);
   const { game } = context;
 
-  function getRoomCapacity() {
-    return game.room?.capacity || 10;
-  }
+  const getBingoCard = (cardBingoId: string) => {
+    const bingo = game.bingoCards?.find((bg) => bg.id === cardBingoId);
+    return bingo || {} as Bingo;
+  };
 
-  return { ...context, getRoomCapacity };
+  return { ...context, getBingoCard };
 };

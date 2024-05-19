@@ -12,6 +12,7 @@ export interface GameEngine {
 export interface Player {
   id?: string;
   socketId?: string;
+  cardBingoId: string;
   name: string;
   role: "admin" | "player";
   status: GameStatus;

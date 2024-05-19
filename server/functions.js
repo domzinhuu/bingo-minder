@@ -1,6 +1,7 @@
 import { gameEvents } from "./constants.js";
 import { context } from "./game.js";
-import { GameContext } from "./types.js";
+import { generateBingoCard } from "./helper.js";
+import { Bingo, GameContext } from "./types.js";
 import { io } from "./websocket.js";
 
 export function getAvailableRooms(socket) {
@@ -13,6 +14,14 @@ export function startNewRoom(socket, player, room) {
   const gameContext = new GameContext();
   gameContext.players = [player];
   gameContext.room = room;
+
+  let bingoCards = [];
+  Array.from({ length: room.capacity }).forEach(() => {
+    const numbers = generateBingoCard();
+    bingoCards.push(new Bingo("", numbers));
+  });
+
+  gameContext.bingoCards = bingoCards;
   context[player.currentRoom] = gameContext;
   socket.join(room.name);
 }
@@ -58,11 +67,17 @@ export function approveNewPlayerInRoom(socketId, room, playerId) {
   io.to(socketId).socketsJoin(room);
 
   const gameContext = new GameContext(context[room]);
-  let currentPlayer = {};
+  const bingoCardAvailable = gameContext.bingoCards.find((bc) => !bc.owner);
 
+  if (bingoCardAvailable) {
+    bingoCardAvailable.owner = playerId;
+  }
+
+  let currentPlayer = {};
   gameContext.players.map((p) => {
     if (p.id === playerId) {
       p.status = "accepted";
+      p.cardBingoId = (bingoCardAvailable && bingoCardAvailable.id) || "";
       currentPlayer = p;
     }
     return p;
@@ -93,10 +108,4 @@ export function refreshPlayer(player) {
     players.push(player);
     context[player.currentRoom].players = players;
   }
-}
-
-export function playerDisconnected(socket) {
-  const game = new GameContext(context[socket.currentRoom]);
-  const player = game.players.filter((p) => (p.socketId = socket.id));
-  console.log(player);
 }

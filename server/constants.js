@@ -9,5 +9,6 @@ export const gameEvents = {
   approvePlayer: "approve_player",
   rejectPlayer: "reject_player",
   connect: "connect",
+  disconnect: "disconnect",
   refreshSession: "refresh_session",
 };

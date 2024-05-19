@@ -21,9 +21,11 @@ import {
 import { Button } from "../components/ui/button";
 import { CirclePowerIcon } from "lucide-react";
 import { useGame } from "../hooks/game";
-import { GameSettings } from "../types/game";
+import { GameSettings, Player } from "../types/game";
 import { gameSettingsSchema } from "../utils/schemas";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { clearSession } from "@/lib/utils";
 
 export function Home() {
   const navigate = useNavigate();
@@ -37,7 +39,8 @@ export function Home() {
       playerNumber: 2,
     },
   });
-  const { roomList, newGame, addPlayerInRoom } = useGame();
+  const { roomList, newGame, addPlayerInRoom, refreshCurrentPlayer } =
+    useGame();
 
   const handleNewMatch = (setting: GameSettings) => {
     if (setting.roomType === "admin") {
@@ -49,8 +52,10 @@ export function Home() {
     }
   };
 
-
-  
+  useEffect(() => {
+    clearSession();
+    refreshCurrentPlayer({} as Player);
+  }, []);
 
   const roomType = form.watch("roomType");
   return (

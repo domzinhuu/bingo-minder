@@ -21,6 +21,8 @@ io.on("connection", (socket) => {
   //Listening
   socket.on(gameEvents.refreshSession, (player) => {
     socket.join(player.currentRoom);
+    socket.currentRoom = player.currentRoom;
+
     refreshPlayer(player);
 
     updateRoomGame(player.currentRoom);
@@ -32,7 +34,7 @@ io.on("connection", (socket) => {
       socketId: socket.id,
       name: setting.username,
       role: setting.roomType,
-      status: "",
+      status: "accepted",
       currentRoom: setting.roomName,
     });
 
@@ -61,6 +63,7 @@ io.on("connection", (socket) => {
     //TODO: adicionar validaçao aqui para ver se o player é valido, se ja existem alguem com mesmo nome, etc...
     addNewPlayer(socket, player);
     updateRoomGame(roomName);
+    setSocketPlayer(socket, player);
   });
 
   socket.on(gameEvents.drawNumber, ({ value, roomName }) => {
@@ -78,6 +81,10 @@ io.on("connection", (socket) => {
   socket.on(gameEvents.rejectPlayer, ({ roomName, playerId, socketId }) => {
     rejectPlayerInRoom(socketId, roomName, playerId);
     updateRoomGame(roomName);
+  });
+
+  socket.on(gameEvents.disconnect, () => {
+    console.log("chamou disconnect", socket.id);
   });
 });
 
