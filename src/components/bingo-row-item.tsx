@@ -1,14 +1,19 @@
-import { cn } from "@/lib/utils";
+import { cn, updateCheckedNumbers } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "./ui/button";
 
 interface Props {
   value: string;
   className?: string;
+  isChecked: boolean;
 }
-export function BingoRowItem({ value, className }: Props) {
-  const [checked, setChecked] = useState(false);
+export function BingoRowItem({ value, className, isChecked }: Props) {
+  const [checked, setChecked] = useState(isChecked);
 
+  const handleCheckNumber = () => {
+    updateCheckedNumbers(Number(value));
+    setChecked((prev) => !prev);
+  };
   return (
     <div
       data-coringa={Number(value) === 0}
@@ -21,7 +26,7 @@ export function BingoRowItem({ value, className }: Props) {
         <img src="/images/joker.png" className="lg:size-24  size-14" />
       ) : (
         <Button
-          onClick={() => setChecked((prev) => !prev)}
+          onClick={handleCheckNumber}
           data-clicked={checked}
           disabled={["B", "I", "N", "G", "O"].includes(value)}
           variant="ghost"

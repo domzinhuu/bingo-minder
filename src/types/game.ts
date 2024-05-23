@@ -17,6 +17,7 @@ export interface Player {
   role: "admin" | "player";
   status: GameStatus;
   currentRoom: string;
+  selectedNumbers?: number
 }
 
 export interface GameRoom {

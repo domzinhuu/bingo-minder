@@ -26,3 +26,4 @@ export function generateBingoCard() {
 
   return card;
 }
+

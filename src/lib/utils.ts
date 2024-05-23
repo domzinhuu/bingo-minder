@@ -18,3 +18,24 @@ export function getSession() {
 export function clearSession() {
   sessionStorage.removeItem("player");
 }
+
+export function updateCheckedNumbers(value: number) {
+  const values = sessionStorage.getItem("checkedNumbers");
+  const list: number[] = values ? JSON.parse(values) : [];
+
+  if (list.includes(value)) {
+    sessionStorage.setItem(
+      "checkedNumbers",
+      JSON.stringify(list.filter((n) => n !== value))
+    );
+  } else {
+    list.push(value);
+    sessionStorage.setItem("checkedNumbers", JSON.stringify(list));
+  }
+}
+
+export function getCheckedNumbers() {
+  const values = sessionStorage.getItem("checkedNumbers");
+
+  return values ? JSON.parse(values) : [];
+}

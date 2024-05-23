@@ -26,3 +26,7 @@ export function generateBingoCard(): Record<string, number[]> {
 
   return card;
 }
+
+export function getBingoCardShortId(id: string) {
+  return id ? id.split("-")[0] : "";
+}

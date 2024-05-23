@@ -6,7 +6,7 @@ export function PageAside({ children }: PropsWithChildren) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <aside className="w-64 hidden lg:block bg-slate-100 border-r border-slate-200 rounded-l-lg p-4">
+      <aside className="w-80 hidden lg:block bg-slate-100 border-r border-slate-200 rounded-l-lg p-4 relative">
         {children}
       </aside>
       <aside className="w-full fixed lg:hidden flex bg-slate-100 border-r border-slate-200 shadow-lg h-20 p-4 items-center gap-2">
@@ -20,7 +20,7 @@ export function PageAside({ children }: PropsWithChildren) {
         <h1 className="font-title">Bingo Minder</h1>
 
         {open && (
-          <div className="absolute left-0 top-0 z-30 w-64 h-screen shadow-lg bg-white p-4 text-right">
+          <div className="absolute left-0 top-0 z-30 w-80 h-screen shadow-lg bg-white p-4 text-right">
             <Button
               variant="ghost"
               size="icon"

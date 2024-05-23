@@ -10,4 +10,10 @@ export enum GameEvents {
   rejectPlayer = "reject_player",
   connect = "connect",
   refreshSession = "refresh_session",
+  disconnectPlayer = "disconnect_player",
+  gameRoomCreated = "game_room_created",
+  gameRoomCreateError = "game_room_create_error",
+  newPlayerAdded = "new_player_added",
+  newPlayerError = "new_player_error",
+  roomClosed = "room_closed",
 }

@@ -3,7 +3,12 @@ import {
   addNewPlayer,
   approveNewPlayerInRoom,
   drawNumber,
+  gameRoomCreateError,
+  gameRoomCreated,
   getAvailableRooms,
+  newPlayerAdded,
+  newPlayerError,
+  playerDisconnected,
   refreshPlayer,
   rejectPlayerInRoom,
   setSocketPlayer,
@@ -13,6 +18,8 @@ import {
 } from "./functions.js";
 import { httpServer, io } from "./websocket.js";
 import { gameEvents } from "./constants.js";
+import { validateNewPlayerOnRoom, validateRoomCreate } from "./validations.js";
+import { game } from "./game.js";
 
 io.on("connection", (socket) => {
   // Sending room list to new socket connected
@@ -43,11 +50,18 @@ io.on("connection", (socket) => {
       capacity: setting.playerNumber,
     };
 
-    startNewRoom(socket, player, room);
-    setSocketPlayer(socket, player);
+    const isValid = validateRoomCreate(setting.roomName);
 
-    updateRoomGame(room.name);
-    updateAvailableRooms();
+    if (isValid) {
+      game.addRoom(setting.roomName);
+      startNewRoom(socket, player, room);
+      setSocketPlayer(socket, player);
+      updateRoomGame(room.name);
+      updateAvailableRooms();
+      gameRoomCreated(socket);
+    } else {
+      gameRoomCreateError(socket);
+    }
   });
 
   socket.on(gameEvents.addNewPlayer, ({ playerName, roomName }) => {
@@ -60,10 +74,16 @@ io.on("connection", (socket) => {
       currentRoom: roomName,
     });
 
-    //TODO: adicionar validaçao aqui para ver se o player é valido, se ja existem alguem com mesmo nome, etc...
-    addNewPlayer(socket, player);
-    updateRoomGame(roomName);
-    setSocketPlayer(socket, player);
+    const { isValid, error } = validateNewPlayerOnRoom(roomName, playerName);
+
+    if (isValid) {
+      addNewPlayer(player);
+      updateRoomGame(roomName);
+      setSocketPlayer(socket, player);
+      newPlayerAdded(socket);
+    } else {
+      newPlayerError(socket, error);
+    }
   });
 
   socket.on(gameEvents.drawNumber, ({ value, roomName }) => {
@@ -85,6 +105,22 @@ io.on("connection", (socket) => {
 
   socket.on(gameEvents.disconnect, () => {
     console.log("chamou disconnect", socket.id);
+  });
+
+  socket.on(gameEvents.disconnectPlayer, async ({ playerId, room }) => {
+    const closeRoom = playerDisconnected(playerId, room);
+
+    if (closeRoom) {
+      const sockets = await io.in(room).fetchSockets();
+
+      sockets.forEach((sct) => {
+        getAvailableRooms(sct);
+        sct.emit(gameEvents.roomClosed);
+        sct.leave(room);
+      });
+    } else {
+      updateRoomGame(socket.currentRoom);
+    }
   });
 });
 

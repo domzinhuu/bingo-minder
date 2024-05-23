@@ -1,11 +1,11 @@
 import { gameEvents } from "./constants.js";
-import { context } from "./game.js";
+import { game } from "./game.js";
 import { generateBingoCard } from "./helper.js";
 import { Bingo, GameContext } from "./types.js";
 import { io } from "./websocket.js";
 
 export function getAvailableRooms(socket) {
-  socket.emit(gameEvents.availableRooms, Object.keys(context));
+  socket.emit(gameEvents.availableRooms, game.rooms);
 }
 
 export function startNewRoom(socket, player, room) {
@@ -22,8 +22,18 @@ export function startNewRoom(socket, player, room) {
   });
 
   gameContext.bingoCards = bingoCards;
-  context[player.currentRoom] = gameContext;
+  game.saveGameContext(room.name, gameContext);
   socket.join(room.name);
+}
+
+export function gameRoomCreated(socket) {
+  socket.emit(gameEvents.gameRoomCreated);
+}
+
+export function gameRoomCreateError(socket) {
+  socket.emit(gameEvents.gameRoomCreateError, {
+    message: "This room name already exists",
+  });
 }
 
 export function setSocketPlayer(socket, player) {
@@ -31,42 +41,33 @@ export function setSocketPlayer(socket, player) {
 }
 
 export function updateRoomGame(room) {
-  io.to(room).emit(gameEvents.gameUpdated, context[room]);
-}
-
-export function connectPlayer(socket) {
-  console.log("event - new socket connection:", socket.id);
+  io.to(room).emit(gameEvents.gameUpdated, game.getGameContext(room));
 }
 
 export function updateAvailableRooms() {
-  io.emit(gameEvents.updateAvailableRooms, Object.keys(context));
+  io.emit(gameEvents.updateAvailableRooms, game.rooms);
 }
 
-export function addNewPlayer(socket, player) {
-  const gameContext = new GameContext(context[player.currentRoom]);
-  gameContext.players = [...gameContext.players, player];
-  context[player.currentRoom] = gameContext;
+export function addNewPlayer(player) {
+  game.addNewPlayerToContext(player);
+}
+
+export function newPlayerAdded(socket) {
+  socket.emit(gameEvents.newPlayerAdded);
+}
+
+export function newPlayerError(socket, error) {
+  socket.emit(gameEvents.newPlayerError, error);
 }
 
 export function drawNumber(room, value) {
-  const gameContext = new GameContext(context[room]);
-
-  let drawnNumbers = gameContext.drawnNumbers || [];
-
-  if (drawnNumbers.includes(value)) {
-    const updated = drawnNumbers.filter((n) => n !== value);
-    gameContext.drawnNumbers = updated;
-  } else {
-    drawnNumbers.push(value);
-    gameContext.drawnNumbers = drawnNumbers;
-  }
-  context[room] = gameContext;
+  game.setDrawNumber(room, value);
 }
 
 export function approveNewPlayerInRoom(socketId, room, playerId) {
   io.to(socketId).socketsJoin(room);
 
-  const gameContext = new GameContext(context[room]);
+  const gameContext = new GameContext(game.getGameContext(room));
   const bingoCardAvailable = gameContext.bingoCards.find((bc) => !bc.owner);
 
   if (bingoCardAvailable) {
@@ -82,17 +83,17 @@ export function approveNewPlayerInRoom(socketId, room, playerId) {
     }
     return p;
   });
-  context[room] = gameContext;
 
+  game.saveGameContext(gameContext);
   return currentPlayer;
 }
 
 export function rejectPlayerInRoom(socketId, room, playerId) {
   io.to(socketId).socketsLeave(room);
 
-  const gameContext = new GameContext(context[room]);
+  const gameContext = new GameContext(game.getGameContext(room));
   gameContext.players = gameContext.players.filter((p) => p.id !== playerId);
-  context[room] = gameContext;
+  game.saveGameContext(gameContext);
 
   io.sockets.sockets
     .get(socketId)
@@ -100,12 +101,31 @@ export function rejectPlayerInRoom(socketId, room, playerId) {
 }
 
 export function refreshPlayer(player) {
-  if (context[player.currentRoom]) {
-    const players = context[player.currentRoom].players.filter(
-      (p) => p.id !== player.id
-    );
+  const gameContext = new GameContext(game.getGameContext(player.currentRoom));
+
+  if (gameContext) {
+    const players = gameContext.players.filter((p) => p.id !== player.id);
 
     players.push(player);
-    context[player.currentRoom].players = players;
+    gameContext.players = players;
+
+    game.saveGameContext(gameContext);
   }
+}
+
+export function playerDisconnected(playerId, room) {
+  const gameContext = new GameContext(game.getGameContext(room))
+
+  const player = gameContext.players.find((p) => p.id === playerId);
+  let closeRoom = false;
+
+  if (player && player.role === "admin") {
+    closeRoom = true;
+    game.removeRoom(room);
+  } else {
+    game.deletePlayerFromContext(room, playerId);
+    console.log("Jogador desconectado");
+  }
+
+  return closeRoom;
 }

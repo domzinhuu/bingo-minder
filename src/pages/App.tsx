@@ -25,11 +25,14 @@ import { GameSettings, Player } from "../types/game";
 import { gameSettingsSchema } from "../utils/schemas";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { clearSession } from "@/lib/utils";
+import { clearSession, getSession } from "@/lib/utils";
+import { socket } from "@/ws/socket";
+import { GameEvents } from "@/utils/enums";
+import { useCustomToast } from "@/hooks/toaster";
 
 export function Home() {
   const navigate = useNavigate();
-
+  const { toastError } = useCustomToast();
   const form = useForm<GameSettings>({
     resolver: zodResolver(gameSettingsSchema),
     defaultValues: {
@@ -45,16 +48,45 @@ export function Home() {
   const handleNewMatch = (setting: GameSettings) => {
     if (setting.roomType === "admin") {
       newGame(setting);
-      navigate("/host");
     } else {
       addPlayerInRoom(setting.username, setting.roomName);
-      navigate("/waiting");
     }
   };
 
   useEffect(() => {
-    clearSession();
-    refreshCurrentPlayer({} as Player);
+    const player = getSession();
+
+    if (player) {
+      socket.emit(GameEvents.disconnectPlayer, {
+        playerId: player.id,
+        room: player.currentRoom,
+      });
+      clearSession();
+      refreshCurrentPlayer({} as Player);
+    }
+
+    socket.on(GameEvents.gameRoomCreated, () => {
+      navigate("/host");
+    });
+
+    socket.on(GameEvents.gameRoomCreateError, ({ message }) => {
+      toastError(message, "Duplicated room");
+    });
+
+    socket.on(GameEvents.newPlayerAdded, () => {
+      navigate("/waiting");
+    });
+
+    socket.on(GameEvents.newPlayerError, ({ message, title }) => {
+      toastError(message, title);
+    });
+
+    return () => {
+      socket.off(GameEvents.gameRoomCreated);
+      socket.off(GameEvents.gameRoomCreateError);
+      socket.off(GameEvents.newPlayerAdded);
+      socket.off(GameEvents.newPlayerError);
+    };
   }, []);
 
   const roomType = form.watch("roomType");
