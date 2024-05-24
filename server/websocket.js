@@ -5,8 +5,7 @@ import { Server } from "socket.io";
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000", "https://admin.socket.io"],
-    credentials: true,
+    origin: "*"
   },
 });
 
