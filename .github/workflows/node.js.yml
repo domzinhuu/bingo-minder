@@ -27,7 +27,7 @@ jobs:
         run: docker build -t domzinhuu/bingo-minder:${{steps.generate_sha.outputs.sha}} .
     
       - name: Build docker image for webosocker-bingo-minder
-        run: docker build -t domzinhuu/ws-bingo-minder:${{steps.generate_sha.outputs.sha}} .
+        run: docker build -f ws.Dockerfile -t domzinhuu/ws-bingo-minder:${{steps.generate_sha.outputs.sha}} .
 
       - name: Docker Login
         uses: docker/login-action@v3.1.0
@@ -40,7 +40,7 @@ jobs:
           docker push domzinhuu/bingo-minder:${{steps.generate_sha.outputs.sha}}
           docker push domzinhuu/ws-bingo-minder:${{steps.generate_sha.outputs.sha}}
           docker tag domzinhuu/bingo-minder:${{steps.generate_sha.outputs.sha}} domzinhuu/bingo-minder:latest
-          docker tag domzinhuu/nlw.service.passin:${{steps.generate_sha.outputs.sha}} domzinhuu/ws-bingo-minder:latest
+          docker tag domzinhuu/ws-bingo-minder:${{steps.generate_sha.outputs.sha}} domzinhuu/ws-bingo-minder:latest
           docker push domzinhuu/bingo-minder:latest
           docker push domzinhuu/ws-bingo-minder:latest
       
