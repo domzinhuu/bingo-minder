@@ -5,9 +5,9 @@ import { Button } from "./ui/button";
 interface Props {
   value: string;
   className?: string;
-  isChecked: boolean;
+  isChecked?: boolean;
 }
-export function BingoRowItem({ value, className, isChecked }: Props) {
+export function BingoRowItem({ value, className, isChecked = false }: Props) {
   const [checked, setChecked] = useState(isChecked);
 
   const handleCheckNumber = () => {
