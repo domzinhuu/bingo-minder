@@ -1,13 +1,17 @@
 import { PageRoot } from "@/components/page";
 import { Card, CardContent } from "@/components/ui/card";
 import { useGame } from "@/hooks/game";
+import { useCustomToast } from "@/hooks/toaster";
 import { Player } from "@/types/game";
+import { GameEvents } from "@/utils/enums";
+import { socket } from "@/ws/socket";
 import { Loader2Icon } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function Waiting() {
   const { currentPlayer, refreshCurrentPlayer } = useGame();
+  const { toastInfo } = useCustomToast();
   const navigate = useNavigate();
   useEffect(() => {
     if (currentPlayer.status === "accepted") {
@@ -19,6 +23,14 @@ export function Waiting() {
       navigate("/");
     }
   }, [currentPlayer]);
+
+  useEffect(() => {
+    socket.on(GameEvents.roomClosed, () => {
+      navigate("/");
+      toastInfo("This room was closed by the host", "Room closed");
+    });
+  }, []);
+
   return (
     <PageRoot>
       <Card>

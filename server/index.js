@@ -26,13 +26,14 @@ io.on("connection", (socket) => {
   getAvailableRooms(socket);
 
   //Listening
-  socket.on(gameEvents.refreshSession, (player) => {
-    socket.join(player.currentRoom);
-    socket.currentRoom = player.currentRoom;
+  socket.on(gameEvents.refreshSession, ({ currentPlayer }) => {
+    const room = game.rooms.find((r) => r.name === currentPlayer.currentRoom);
 
-    refreshPlayer(player);
+    socket.join(room.id);
+    socket.currentRoom = room.id;
+    refreshPlayer(currentPlayer, room.id);
 
-    updateRoomGame(player.currentRoom);
+    updateRoomGame(room);
   });
 
   socket.on(gameEvents.startNewRoom, (setting) => {
@@ -42,21 +43,22 @@ io.on("connection", (socket) => {
       name: setting.username,
       role: setting.roomType,
       status: "accepted",
-      currentRoom: setting.roomName,
+      currentRoom: setting.roomRef,
     });
 
     const room = {
-      name: setting.roomName,
+      id: crypto.randomUUID(),
+      name: setting.roomRef,
       capacity: setting.playerNumber,
     };
 
-    const isValid = validateRoomCreate(setting.roomName);
+    const isValid = validateRoomCreate(setting.roomRef);
 
     if (isValid) {
-      game.addRoom(setting.roomName);
+      game.addRoom(room);
       startNewRoom(socket, player, room);
       setSocketPlayer(socket, player);
-      updateRoomGame(room.name);
+      updateRoomGame(room);
       updateAvailableRooms();
       gameRoomCreated(socket);
     } else {
@@ -64,21 +66,21 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on(gameEvents.addNewPlayer, ({ playerName, roomName }) => {
+  socket.on(gameEvents.addNewPlayer, ({ playerName, room }) => {
     const player = new Player({
       id: crypto.randomUUID(),
       socketId: socket.id,
       name: playerName,
       role: "player",
       status: "waiting",
-      currentRoom: roomName,
+      currentRoom: room.name,
     });
 
-    const { isValid, error } = validateNewPlayerOnRoom(roomName, playerName);
+    const { isValid, error } = validateNewPlayerOnRoom(room.id, playerName);
 
     if (isValid) {
-      addNewPlayer(player);
-      updateRoomGame(roomName);
+      addNewPlayer(player, room.id);
+      updateRoomGame(room);
       setSocketPlayer(socket, player);
       newPlayerAdded(socket);
     } else {
@@ -86,21 +88,21 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on(gameEvents.drawNumber, ({ value, roomName }) => {
-    drawNumber(roomName, value);
-    updateRoomGame(roomName);
+  socket.on(gameEvents.drawNumber, ({ value, room }) => {
+    drawNumber(room, value);
+    updateRoomGame(room);
   });
 
-  socket.on(gameEvents.approvePlayer, ({ roomName, playerId, socketId }) => {
-    const player = approveNewPlayerInRoom(socketId, roomName, playerId);
+  socket.on(gameEvents.approvePlayer, ({ room, playerId, socketId }) => {
+    const player = approveNewPlayerInRoom(socketId, room, playerId);
 
     io.to(socketId).emit(gameEvents.socketPlayer, player);
-    updateRoomGame(roomName);
+    updateRoomGame(room);
   });
 
-  socket.on(gameEvents.rejectPlayer, ({ roomName, playerId, socketId }) => {
-    rejectPlayerInRoom(socketId, roomName, playerId);
-    updateRoomGame(roomName);
+  socket.on(gameEvents.rejectPlayer, ({ room, playerId, socketId }) => {
+    rejectPlayerInRoom(socketId, room, playerId);
+    updateRoomGame(room);
   });
 
   socket.on(gameEvents.disconnect, () => {
@@ -111,15 +113,14 @@ io.on("connection", (socket) => {
     const closeRoom = playerDisconnected(playerId, room);
 
     if (closeRoom) {
-      const sockets = await io.in(room).fetchSockets();
-
+      const sockets = await io.in(room.id).fetchSockets();
       sockets.forEach((sct) => {
         getAvailableRooms(sct);
         sct.emit(gameEvents.roomClosed);
         sct.leave(room);
       });
     } else {
-      updateRoomGame(socket.currentRoom);
+      updateRoomGame(room);
     }
   });
 });

@@ -37,19 +37,24 @@ export function Home() {
     resolver: zodResolver(gameSettingsSchema),
     defaultValues: {
       username: "",
-      roomName: "",
+      roomRef: "",
       roomType: "admin",
       playerNumber: 2,
     },
   });
-  const { roomList, newGame, addPlayerInRoom, refreshCurrentPlayer } =
-    useGame();
+  const {
+    roomList,
+    newGame,
+    addPlayerInRoom,
+    refreshCurrentPlayer,
+    getRoomByName,
+  } = useGame();
 
   const handleNewMatch = (setting: GameSettings) => {
     if (setting.roomType === "admin") {
       newGame(setting);
     } else {
-      addPlayerInRoom(setting.username, setting.roomName);
+      addPlayerInRoom(setting.username, setting.roomRef);
     }
   };
 
@@ -57,10 +62,12 @@ export function Home() {
     const player = getSession();
 
     if (player) {
+      const room = getRoomByName(player.currentRoom);
       socket.emit(GameEvents.disconnectPlayer, {
         playerId: player.id,
-        room: player.currentRoom,
+        room,
       });
+
       clearSession();
       refreshCurrentPlayer({} as Player);
     }
@@ -102,7 +109,7 @@ export function Home() {
           <span className="text-[0.856rem]">&copy; 2024 Msr Software</span>
         </div>
       </PageAside>
-      <PageContent >
+      <PageContent>
         <div className="w-full lg:w-[500px] ">
           <Form {...form}>
             <form
@@ -166,7 +173,7 @@ export function Home() {
                 <div className="flex items-center gap-2 w-full">
                   <FormField
                     control={form.control}
-                    name="roomName"
+                    name="roomRef"
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className="text-white font-number">
@@ -205,7 +212,7 @@ export function Home() {
               {roomType === "player" && (
                 <FormField
                   control={form.control}
-                  name="roomName"
+                  name="roomRef"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-number text-white">
@@ -227,8 +234,8 @@ export function Home() {
                             </SelectItem>
                           ) : (
                             roomList.map((room) => (
-                              <SelectItem key={room} value={room}>
-                                {room}
+                              <SelectItem key={room.id} value={room.id}>
+                                {room.name}
                               </SelectItem>
                             ))
                           )}

@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useGame } from "@/hooks/game";
 import { useCustomToast } from "@/hooks/toaster";
+import { getSession } from "@/lib/utils";
+import { Player } from "@/types/game";
 import { GameEvents } from "@/utils/enums";
 import { getBingoCardShortId } from "@/utils/functions";
 import { socket } from "@/ws/socket";
@@ -22,16 +24,17 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function Host() {
-  const {toastInfo} = useCustomToast()
-  const { status, game, currentPlayer } = useGame();
+  const { toastInfo, toastError } = useCustomToast();
+  const { status, game, currentPlayer, getRoomByName } = useGame();
   const [selectedCardId, setSelectedCardId] = useState("");
   const navigate = useNavigate();
+  const currentRoom = getRoomByName(currentPlayer.currentRoom);
 
   const handlePlayerApproval = (playerId: string, socketId: string) => {
     socket.emit(GameEvents.approvePlayer, {
       playerId,
       socketId,
-      roomName: currentPlayer.currentRoom,
+      room: currentRoom,
     });
   };
 
@@ -39,13 +42,13 @@ export function Host() {
     socket.emit(GameEvents.rejectPlayer, {
       playerId,
       socketId,
-      roomName: currentPlayer.currentRoom,
+      room: currentRoom,
     });
   };
 
   const handleCopyId = (cardBingoId: string) => {
     navigator.clipboard.writeText(cardBingoId).then(() => {
-     toastInfo("Texto copiado para area de transferência.")
+      toastInfo("Texto copiado para area de transferência.");
     });
   };
 
@@ -75,6 +78,15 @@ export function Host() {
       navigate("/");
     }
   }, [status]);
+
+  useEffect(() => {
+    const player: Player = getSession();
+
+    if (!player || player.role !== "admin") {
+      toastError("You are not logged in as admin", "Not Allowed");
+      navigate("/");
+    }
+  }, []);
 
   return (
     <PageRoot>
@@ -168,7 +180,11 @@ export function Host() {
             value={selectedCardId}
             onChange={(el) => setSelectedCardId(el.target.value)}
           />
-          <Button onClick={validateChampion} size="sm">
+          <Button
+            disabled={!selectedCardId}
+            onClick={validateChampion}
+            size="sm"
+          >
             Validate
           </Button>
         </div>

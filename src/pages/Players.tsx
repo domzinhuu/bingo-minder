@@ -11,9 +11,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { socket } from "@/ws/socket";
 import { GameEvents } from "@/utils/enums";
 import { useCustomToast } from "@/hooks/toaster";
+import { Player } from "@/types/game";
+import { getSession } from "@/lib/utils";
 
 export function Players() {
-  const { toastInfo } = useCustomToast();
+  const { toastInfo, toastError } = useCustomToast();
   const { currentDrawnNumbers, status, currentPlayer, getBingoCard } =
     useGame();
   const bingo = getBingoCard(currentPlayer.cardBingoId!);
@@ -26,8 +28,13 @@ export function Players() {
   }, [status]);
 
   useEffect(() => {
+    const player: Player = getSession();
+    if (!player) {
+      toastError("You are not logged in", "Not Allowed");
+      navigate("/");
+    }
+
     socket.on(GameEvents.roomClosed, () => {
-      console.log("Ïchegou aqui")
       navigate("/");
       toastInfo("This room was closed by the host", "Room closed");
     });

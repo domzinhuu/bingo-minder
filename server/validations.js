@@ -4,12 +4,12 @@ import { GameContext } from "./types.js";
 export function validateRoomCreate(roomName) {
   const rooms = game.rooms;
 
-  const alreadyExist = rooms.includes(roomName);
+  const alreadyExist = rooms.some((r) => r.name === roomName);
   return !alreadyExist;
 }
 
-export function validateNewPlayerOnRoom(roomName, playerName) {
-  const gameContext = new GameContext(game.getGameContext(roomName));
+export function validateNewPlayerOnRoom(roomId, playerName) {
+  const gameContext = new GameContext(game.getGameContext(roomId));
   const players = gameContext.players;
   const roomCapacity = gameContext.room.capacity;
 

@@ -7,8 +7,12 @@ export const useGame = () => {
 
   const getBingoCard = (cardBingoId: string) => {
     const bingo = game.bingoCards?.find((bg) => bg.id === cardBingoId);
-    return bingo || {} as Bingo;
+    return bingo || ({} as Bingo);
   };
 
-  return { ...context, getBingoCard };
+  const getRoomByName = (roomName: string) => {
+    return context.roomList.find((room) => room.name === roomName);
+  };
+
+  return { ...context, getBingoCard, getRoomByName };
 };

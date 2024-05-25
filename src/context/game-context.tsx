@@ -8,10 +8,10 @@ interface ContextProps {
   game: GameEngine;
   currentPlayer: Player;
   currentDrawnNumbers: number[];
-  roomList: string[];
+  roomList: GameRoom[];
   status: "" | "connected" | "disconnected";
   updatePlayers: (player: Player) => void;
-  addPlayerInRoom: (playerName: string, roomName: string) => void;
+  addPlayerInRoom: (playerName: string, roomRef: string) => void;
   refreshCurrentPlayer: (player: Player) => void;
   newGame: (settings: GameSettings) => void;
 }
@@ -28,7 +28,7 @@ export const GameContext = createContext<ContextProps>({} as ContextProps);
 export function GameProvider({ children }: PropsWithChildren) {
   const [game, setGame] = useState<GameEngine>(initialState);
   const [currentPlayer, setPlayer] = useState<Player>({} as Player);
-  const [roomList, setRoomList] = useState<string[]>([]);
+  const [roomList, setRoomList] = useState<GameRoom[]>([]);
   const [status, setStatus] = useState<"" | "connected" | "disconnected">("");
 
   const handleUpdatePlayers = (player: Player) => {
@@ -40,8 +40,10 @@ export function GameProvider({ children }: PropsWithChildren) {
     setPlayer(player);
   };
 
-  const addPlayerInRoom = (playerName: string, roomName: string) => {
-    socket.emit(GameEvents.addNewPlayer, { playerName, roomName });
+  const addPlayerInRoom = (playerName: string, roomRef: string) => {
+    const room = roomList.find((r) => r.id === roomRef);
+
+    socket.emit(GameEvents.addNewPlayer, { playerName, room });
   };
 
   const createANewGame = (setting: GameSettings) => {
@@ -55,11 +57,11 @@ export function GameProvider({ children }: PropsWithChildren) {
       if (currentPlayer && currentPlayer.status === "accepted") {
         currentPlayer.socketId = socket.id;
 
-        socket.emit(GameEvents.refreshSession, currentPlayer);
+        socket.emit(GameEvents.refreshSession, { currentPlayer });
       }
     });
 
-    socket.on(GameEvents.availableRooms, (data: string[]) => {
+    socket.on(GameEvents.availableRooms, (data: GameRoom[]) => {
       setRoomList(data);
       setStatus("connected");
       const player = getSession();
@@ -78,7 +80,7 @@ export function GameProvider({ children }: PropsWithChildren) {
       setSession(player);
     });
 
-    socket.on(GameEvents.updateAvailableRooms, (data: string[]) => {
+    socket.on(GameEvents.updateAvailableRooms, (data: GameRoom[]) => {
       setRoomList(data);
     });
   }, []);

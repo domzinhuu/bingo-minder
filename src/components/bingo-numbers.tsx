@@ -7,18 +7,21 @@ import { GameEvents } from "@/utils/enums";
 export function BingoNumbers() {
   const {
     currentPlayer,
+    getRoomByName,
     game: { drawnNumbers },
   } = useGame();
 
+  const room = getRoomByName(currentPlayer.currentRoom);
+
   const handleNumberClicked = (value: number) => {
-    socket.emit(GameEvents.drawNumber, { value, roomName: currentPlayer.currentRoom });
+    socket.emit(GameEvents.drawNumber, { value, room });
   };
 
   return (
     <Card className="bg-gray-900">
       <CardContent className="p-4">
         <div className="grid grid-cols-6 lg:grid-cols-11 gap-2">
-        {Array.from({ length: 75 }).map((_, i) => (
+          {Array.from({ length: 75 }).map((_, i) => (
             <div
               key={i}
               className="flex items-center justify-center bg-white rounded-lg"

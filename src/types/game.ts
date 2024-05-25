@@ -17,10 +17,11 @@ export interface Player {
   role: "admin" | "player";
   status: GameStatus;
   currentRoom: string;
-  selectedNumbers?: number
+  selectedNumbers?: number;
 }
 
 export interface GameRoom {
+  id: string;
   name: string;
   capacity: number;
 }

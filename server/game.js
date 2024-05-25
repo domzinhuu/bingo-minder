@@ -6,53 +6,52 @@ class BingoGame {
 
   constructor() {}
 
-  saveGameContext(roomName, game) {
-    this.context[roomName] = new GameContext(game);
+  saveGameContext(roomId, game) {
+    this.context[roomId] = new GameContext(game);
   }
 
-  removeGameContext(roomName) {
-    delete this.context[roomName];
+  removeGameContext(roomId) {
+    delete this.context[roomId];
   }
 
-  getGameContext(roomName) {
-    return this.context[roomName];
+  getGameContext(roomId) {
+    return this.context[roomId];
   }
 
-  addRoom(roomName) {
-    this.rooms.push(roomName);
+  addRoom(room) {
+    this.rooms.push(room);
   }
 
-  removeRoom(roomName) {
-    this.rooms = this.rooms.filter((r) => r !== roomName);
-    delete this.context[roomName];
+  removeRoom(roomId) {
+    this.rooms = this.rooms.filter((r) => r.id !== roomId);
+    delete this.context[roomId];
   }
 
-  addNewPlayerToContext(player) {
+  addNewPlayerToContext(player, roomId) {
     const newPlayer = new Player(player);
 
-    this.context[newPlayer.currentRoom].players = [
-      ...this.context[newPlayer.currentRoom].players,
-      player,
-    ];
+    this.context[roomId].players = [...this.context[roomId].players, newPlayer];
   }
 
-  deletePlayerFromContext(roomName, playerId) {
-    if (this.context[roomName]) {
-      this.context[roomName].players = this.context[roomName].players.filter(
-        (p) => p.id !== playerId
-      );
+  deletePlayerFromContext(room, playerId) {
+    const context = this.getGameContext(room.id);
+
+    if (context) {
+      const players = context.players.filter((p) => p.id !== playerId);
+      context.players = players;
+      this.context[room.id] = context;
     }
   }
 
-  setDrawNumber(roomName, value) {
-    let drawnNumbers = this.context[roomName].drawnNumbers;
+  setDrawNumber(room, value) {
+    let drawnNumbers = this.context[room.id].drawnNumbers;
 
     if (drawnNumbers.includes(value)) {
       const updated = drawnNumbers.filter((n) => n !== value);
-      this.context[roomName].drawnNumbers = updated;
+      this.context[room.id].drawnNumbers = updated;
     } else {
       drawnNumbers.push(value);
-      this.context[roomName].drawnNumbers = drawnNumbers;
+      this.context[room.id].drawnNumbers = drawnNumbers;
     }
   }
 }
