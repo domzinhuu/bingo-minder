@@ -1,4 +1,3 @@
-import { instrument } from "@socket.io/admin-ui";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -8,7 +7,5 @@ const io = new Server(httpServer, {
     origin: "*"
   },
 });
-
-instrument(io, { auth: false, mode: "development" });
 
 export { io, httpServer };
