@@ -102,8 +102,8 @@ export function Home() {
           <span className="text-[0.856rem]">&copy; 2024 Msr Software</span>
         </div>
       </PageAside>
-      <PageContent>
-        <div className="w-[500px] ">
+      <PageContent >
+        <div className="w-full lg:w-[500px] ">
           <Form {...form}>
             <form
               className="space-y-6"

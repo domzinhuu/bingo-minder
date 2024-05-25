@@ -47,7 +47,7 @@ export function PageContent({ children }: PropsWithChildren) {
 export function PageRoot({ children }: PropsWithChildren) {
   return (
     <div className="min-h-screen lg:max-w-[1280px] w-full lg:mx-auto lg:flex lg:justify-center lg:items-center">
-      <div className=" flex flex-col gap-4 lg:gap-0 lg:flex-row z-10 shadow-lg">
+      <div className=" flex flex-col gap-4 lg:gap-0 lg:flex-row z-10 shadow-lg ">
         {children}
       </div>
     </div>

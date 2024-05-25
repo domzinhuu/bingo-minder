@@ -44,3 +44,16 @@ jobs:
           docker push domzinhuu/bingo-minder:latest
           docker push domzinhuu/ws-bingo-minder:latest
       
+      
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+          SCRIPT_AFTER: |
+            docker stop bingo-minder
+            docker stop ws-bingo-minder
+            docker run --name bingo-minder --rm -d -p 3001:3005 domzinhuu/bingo-minder:${{steps.generate_sha.outputs.sha}}
+            docker run --name ws-bingo-minder --rm -d -p 8080:8080 domzinhuu/ws-bingo-minder:${{steps.generate_sha.outputs.sha}}
+  
