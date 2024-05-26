@@ -54,6 +54,10 @@ class BingoGame {
       this.context[room.id].drawnNumbers = drawnNumbers;
     }
   }
+
+  clearDrawNumber(room) {
+    this.context[room].drawnNumbers = [];
+  }
 }
 
 const game = new BingoGame();

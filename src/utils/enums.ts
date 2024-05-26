@@ -16,4 +16,5 @@ export enum GameEvents {
   newPlayerAdded = "new_player_added",
   newPlayerError = "new_player_error",
   roomClosed = "room_closed",
+  clearTable = "clear_table",
 }

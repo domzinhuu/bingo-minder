@@ -30,3 +30,14 @@ export function generateBingoCard(): Record<string, number[]> {
 export function getBingoCardShortId(id: string) {
   return id ? id.split("-")[0] : "";
 }
+
+export function getRandomNumber(excluded: number[]) {
+  let random = null;
+
+  while (!random) {
+    const sorted = Math.floor(Math.random() * (75 - 1 + 1)) + 1;
+    random = excluded.includes(sorted) ? null : sorted;
+  }
+
+  return random;
+}

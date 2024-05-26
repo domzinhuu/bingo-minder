@@ -16,5 +16,6 @@ export const gameEvents = {
   gameRoomCreateError: "game_room_create_error",
   newPlayerAdded: "new_player_added",
   newPlayerError: "new_player_error",
-  roomClosed: "room_closed"
+  roomClosed: "room_closed",
+  clearTable: "clear_table",
 };

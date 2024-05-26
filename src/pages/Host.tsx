@@ -98,7 +98,7 @@ export function Host() {
             className="flex items-center gap-2 text-[0.8rem]"
             onClick={() => navigate("/")}
           >
-            <LogOutIcon size={16} /> Fechar sala
+            <LogOutIcon size={16} /> Close room
           </Button>
         </div>
 
@@ -174,6 +174,7 @@ export function Host() {
             </ul>
           </div>
         </ScrollArea>
+
         <div className="flex items-center gap-2">
           <Input
             placeholder="Validate Card ID"

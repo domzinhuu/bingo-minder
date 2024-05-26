@@ -2,6 +2,7 @@ import { Player } from "./types.js";
 import {
   addNewPlayer,
   approveNewPlayerInRoom,
+  clearTable,
   drawNumber,
   gameRoomCreateError,
   gameRoomCreated,
@@ -103,6 +104,11 @@ io.on("connection", (socket) => {
   socket.on(gameEvents.rejectPlayer, ({ room, playerId, socketId }) => {
     rejectPlayerInRoom(socketId, room, playerId);
     updateRoomGame(room);
+  });
+
+  socket.on(gameEvents.clearTable, () => {
+    clearTable(socket);
+    updateRoomGame({ id: socket.currentRoom });
   });
 
   socket.on(gameEvents.disconnect, () => {

@@ -102,6 +102,10 @@ export function rejectPlayerInRoom(socketId, room, playerId) {
     .emit(gameEvents.socketPlayer, { status: "rejected" });
 }
 
+export function clearTable(socket){
+  game.clearDrawNumber(socket.currentRoom);
+}
+
 export function refreshPlayer(player, roomId) {
   const gameContext = new GameContext(game.getGameContext(roomId));
 

@@ -50,7 +50,7 @@ export function Players() {
             className="flex items-center gap-2 text-[0.8rem]"
             onClick={() => navigate("/")}
           >
-            <LogOutIcon size={16} /> Sair
+            <LogOutIcon size={16} /> Close
           </Button>
         </div>
         <Table>
