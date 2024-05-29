@@ -102,8 +102,10 @@ export function Home() {
       <PageAside>
         <div className="flex flex-col justify-between h-full">
           <div className="flex-1">
-            <h1 className="font-title">Bingo Minder</h1>
-            <p>This is a bingo app for Minder plays during the happy hour.</p>
+            <h1 className="font-title relative">
+              Bingo Minder <small className="text-sm font-light text-emerald-600 absolute top-0">Beta</small>
+            </h1>
+            <p>This is a bingo app for Minder to play during the happy hour.</p>
           </div>
 
           <span className="text-[0.856rem]">&copy; 2024 Msr Software</span>
