@@ -100,7 +100,7 @@ io.on("connection", (socket) => {
     io.to(socketId).emit(gameEvents.socketPlayer, player);
     updateRoomGame(room);
   });
-
+ 
   socket.on(gameEvents.rejectPlayer, ({ room, playerId, socketId }) => {
     rejectPlayerInRoom(socketId, room, playerId);
     updateRoomGame(room);
