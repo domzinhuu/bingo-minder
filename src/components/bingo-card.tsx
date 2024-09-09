@@ -7,8 +7,8 @@ export function BingoCard({ cardNumbers }: Props) {
   return (
     <div className="rounded-lg space-y-2">
       <BingoHeaderRow />
-      {["B", "I", "N", "G", "O"].map((letter) => (
-        <BingoCardRow key={letter} rowValues={cardNumbers[letter]} />
+      {[...Array<number>(5).keys()].map((index) => (
+        <BingoCardRow key={"row" + index} cardNumbers={cardNumbers} rowIndex={index}/>
       ))}
     </div>
   );
