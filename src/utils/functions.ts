@@ -41,3 +41,11 @@ export function getRandomNumber(excluded: number[]) {
 
   return random;
 }
+
+export function convertToMatrix(cardNumber: Record<string, number[]>) {
+  return Object.keys(cardNumber).map((k) => cardNumber[k]);
+}
+
+export function transpose(matrix: number[][]) {
+  return matrix[0].map((_, colIndex) => matrix.map((row) => row[colIndex]));
+}
