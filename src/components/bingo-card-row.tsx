@@ -2,7 +2,7 @@ import { BingoRowItem } from "./bingo-row-item";
 import { getCheckedNumbers } from "@/lib/utils";
 
 interface Props {
-  rowValues: Array<number>;
+  rowValues: number[];
 }
 export function BingoCardRow({ rowValues }: Props) {
   const checkedNumbers: number[] = getCheckedNumbers();
@@ -13,12 +13,8 @@ export function BingoCardRow({ rowValues }: Props) {
 
   return (
     <div className="w-full flex items-center gap-2 text-slate-900">
-      {"BINGO".split("").map((letter, index) => (
-        <BingoRowItem
-          key={letter}
-          value={String(rowValues[index])}
-          isChecked={verifyIfIsAlreadyChecked(rowValues[index])}
-        />
+      {rowValues.map((value, idx) => (
+        <BingoRowItem key={idx} value={String(value)} isChecked={verifyIfIsAlreadyChecked(value)} />
       ))}
     </div>
   );
